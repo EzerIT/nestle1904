@@ -1,0 +1,12 @@
+*#
+*~
+*.o
+*.d
+nestle2mql
+nestle.mql
+nestle1904
+make_glossdb
+glossdb_greek.db
+nestle2csv
+add_sentences.mql
+find_sentences
