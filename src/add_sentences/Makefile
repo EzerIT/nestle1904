@@ -15,7 +15,7 @@ pugixml.o:	../pugixml/src/pugixml.cpp
 find_sentences: $(OBJFILES)
 	$(CXX) $(CXXFLAGS) $(LDLIBS) -o $@ $+ $(LDFLAGS)
 
-maketext:	maketext.o pugixml.o
+maketext:	maketext.o findfiles.o pugixml.o ../oxia2tonos.o
 	$(CXX) $(CXXFLAGS) $(LDLIBS) -o $@ $+ $(LDFLAGS)
 
 maketext.o:	maketext.cpp
