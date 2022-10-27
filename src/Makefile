@@ -1,20 +1,29 @@
 HEADERS=mql_item.hpp mql_word.hpp morph.hpp util.hpp strip.hpp mql.hpp pugixml/src/pugixml.hpp oxia2tonos.hpp
-CPPFILES=mql_item.cpp mql_word.cpp nestle2mql.cpp morph.cpp util.cpp strip.cpp mql.cpp read_inflection.cpp 
-CPPFILES2=pugixml/src/pugixml.cpp oxia2tonos.cpp
-OBJFILES=$(CPPFILES:.cpp=.o) pugixml.o
-DEPFILES=$(CPPFILES:.cpp=.d) pugixml.d oxia2tonos.d
+
+CPPFILES1=mql_item.cpp mql_word.cpp nestle2mql.cpp morph.cpp util.cpp strip.cpp mql.cpp read_inflection.cpp 
+CPPFILES2=oxia2tonos.cpp
+CPPFILES3=hintsdb.cpp emdros_iterators.cpp
+
+OBJFILES1=$(CPPFILES1:.cpp=.o) pugixml.o
+OBJFILES2=$(CPPFILES2:.cpp=.o) o2t.o
+OBJFILES3=$(CPPFILES3:.cpp=.o)
+
+DEPFILES1=$(CPPFILES1:.cpp=.d) pugixml.d
+DEPFILES2=$(CPPFILES2:.cpp=.d)
+DEPFILES3=$(CPPFILES3:.cpp=.d)
+
 
 CXX=c++-11.1.0
 CXXFLAGS=-std=c++20 -MMD -O3 -I pugixml/src
 CXXFLAGS2=-std=c++20 -MMD -O3
 
-all:	nestle1904 t2o
+all:	nestle1904 t2o nestle1904_hints.db
 
 pugixml.o:	pugixml/src/pugixml.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 
-nestle2mql:	$(OBJFILES)
+nestle2mql:	$(OBJFILES1)
 	$(CXX) $(CXXFLAGS) $(LDLIBS) -o $@ $+ $(LDFLAGS)
 
 nestle.mql:	nestle2mql
@@ -49,8 +58,22 @@ o2t:	o2t.o
 t2o:	o2t
 	ln -s o2t t2o
 
+
+hintsdb: $(OBJFILES3)
+	$(CXX) $(CXXFLAGS2)  -o $@ $+ -lemdros_amalgamation -lpthread -ldl
+
+hintsdb.sql: hintsdb nestle1904
+	./hintsdb nestle1904 $@
+
+nestle1904_hints.db: hintsdb.sql
+	rm -f $@
+	sqlite3 $@ < $+
+
+
 clean:
-	rm -f $(OBJFILES) $(DEPFILES) nestle2mql nestle.mql nestle1904 nestledump.mql nestle.tar.bz2
+	rm -f $(OBJFILES1) $(OBJFILES2) $(OBJFILES3) $(DEPFILES1) $(DEPFILES2) $(DEPFILES3) nestle2mql nestle.mql nestle1904 nestledump.mql nestle.tar.bz2 o2t t2o
 	make -C add_sentences clean
 
--include $(DEPFILES)
+-include $(DEPFILES1)
+-include $(DEPFILES2)
+-include $(DEPFILES3)

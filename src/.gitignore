@@ -10,3 +10,6 @@ glossdb_greek.db
 nestle2csv
 o2t
 t2o
+hintsdb
+hintsdb.sql
+nestle1904_hints.db
