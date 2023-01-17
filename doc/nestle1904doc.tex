@@ -1,0 +1,234 @@
+\documentclass[11pt,oneside,a4paper,article]{memoir}
+\usepackage{fontspec}
+\usepackage[unicode=true,xetex,colorlinks=true,linkcolor=blue,urlcolor=blue,bookmarksnumbered=true,bookmarksdepth=3]{hyperref}
+\usepackage{bidi} % Must be last
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% How to typeset %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% This file must be run through xelatex
+
+%% The following fonts must be accessible to xelatex on
+%% your system:
+%%
+%% Linux Libertine O
+%%
+%% On Fedora Linux, you can bring in these fonts like
+%% so:
+%%
+%% sudo dnf install linux-libertine-fonts
+%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% Configuration %%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Fonts %%%
+\setmainfont[Ligatures=TeX]{Linux Libertine O}
+
+\newfontfamily{\mainnolig}{Linux Libertine O}
+\newcommand{\q}{{\mainnolig '}}
+
+
+%%% Page layout %%%
+\settypeblocksize{247mm}{160mm}{*}
+\setlrmargins{*}{*}{1}
+\setulmargins{*}{*}{1}
+\checkandfixthelayout
+
+%%% Hyperref (Information in PDF) %%%
+\hypersetup{
+unicode=true,
+pdfauthor={Claus Tøndering},
+pdftitle={Generating nestle1904}
+}
+
+%%% Lists %%%
+\tightlists
+
+%%% Allow extra space between words %%%
+\sloppy
+
+
+%%% Font matter %%%
+\title{Generating nestle1904}
+\author{Claus Tøndering}
+\date{17 January 2023}
+
+
+\begin{document}
+\maketitle
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% Introduction %%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+
+This document gives a brief introduction to how to generate the nestle1904 Emdros database for Bible
+Online Learner on a Linux computer.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% Prerequisites %%%%%%%%%%%%%%%%%%%%
+\chapter{Prerequisites}
+
+In order to execute this process, you need to \emph{recursively} clone the GitHub repository
+\texttt{https://github.com/EzerIT/nestle1904.git}:
+
+\vspace{1ex}
+
+\quad\texttt{git clone --recursive https://github.com/EzerIT/nestle1904}
+
+\vspace{1ex}
+
+In the following description I assume that you have cloned the repository into a folder called
+\texttt{nestle1904}.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% Generating nestle1904 %%%%%%%%%%%%%%%%%%%%
+\chapter{Generating nestle1904}
+
+Executing the command ``make'' in the \texttt{nestle1904/src} folder should generate the nestle1904
+Emdros database for Bible OL. This takes about two minutes on my computer.
+
+The steps of the process are detailed in the following sections.
+
+
+\section{Compiling \emph{nestle2mql}}
+
+The C++ source code for \emph{nestle2mql} is compiled. A C++ compiler that supports the
+``-std=c++20'' flag is required.
+
+
+\section{Executing \emph{nestle2mql}}
+
+\noindent \textbf{Input:} \texttt{../nestle1904-1.2/nestle1904.csv}
+
+\noindent \textbf{Output:} \texttt{nestle.mql}
+
+\vspace{1ex}
+
+\noindent
+The file \texttt{../nestle1904-1.2/nestle1904.csv} contains the text to the entire New Testament in
+tab-separated lines. The \emph{nestle2mql} uses this to generate MQL code for the \emph{word}
+objects of the database.
+
+
+\section{Compiling \emph{add\_sentences/find\_sentences} and \emph{add\_sentences/maketext}}
+
+The C++ source code for \emph{find\_sentences} and \emph{maketext} in the \emph{add\_sentences}
+folder is compiled.
+
+
+\section{Executing \emph{add\_sentences/maketext}}\label{sec:maketext}
+
+\noindent \textbf{Input:} \texttt{../greek-new-testament/syntax-trees/nestle1904/xml}
+
+\noindent \textbf{Output:} \texttt{add\_sentences/xmlWithNode.txt}
+
+\vspace{1ex}
+
+\noindent
+The \emph{maketext} program reads XML files containing the sentence structure of the Greek NT and
+generates a file containing \emph{nodeId:word} pairs from those files.
+
+During the process tonos accent marks are replaced by oxia accent marks in the text. The reason for
+this is historical. Earlier versions of the XML files used oxia accent marks, and Bible OL still
+uses these marks.
+
+For a discussion of the difference between tonos and oxia and a history of their use, see the
+section ``A Note on Greek Accents in Unicode'' in the chapter ``Emdros Databases in Bible OL'' in
+the Bible OL technical documentation.
+
+
+\section{Executing \emph{add\_sentences/find\_sentences}}
+
+
+\noindent \textbf{Inputs:}
+\begin{itemize}
+\item \texttt{../greek-new-testament/syntax-trees/nestle1904/xml}
+\item \texttt{add\_sentences/xmlWithNode.txt}
+\end{itemize}
+
+\noindent \textbf{Output:} \texttt{add\_sentences/add\_sentences.mql}
+
+\vspace{1ex}
+
+\noindent
+The \emph{find\_sentences} program reads XML files containing the sentence structure of the Greek NT and
+generates an MQL file for the \emph{sentence, clause1,} and \emph{clause2} objects of the database.
+
+
+\section{Applying the MQL Files}
+
+\noindent \textbf{Inputs:}
+\begin{itemize}
+\item \texttt{nestle1904.mql}
+\item \texttt{add\_sentences/add\_sentences.mql}
+\end{itemize}
+
+\noindent \textbf{Output:} The \texttt{nestle1904} Emdros database
+
+\vspace{1ex}
+
+\noindent
+The ``mql'' command is executed and creates the nestle1904 Emdros database from the MQL files
+generated in the previous steps.
+
+
+\section{Compiling \emph{o2t} and \emph{t2o}}
+
+The C++ source code for the programs \emph{o2t} and \emph{t2o} is compiled.
+
+These two utility programs perform oxia-to-tonos and tonos-to-oxia conversion on their input files.
+They are not used in the generation of the nestle1904 database, but they may be useful in other
+contexts. (See Section \ref{sec:maketext}.)
+
+
+\section{Compiling \emph{hintsdb}}
+
+The C++ source code for \emph{hintsdb} is compiled.
+
+
+\section{Executing \emph{hintsdb}}
+
+\noindent \textbf{Inputs:}
+\begin{itemize}
+\item The nestle1904 database
+\item \texttt{AmbigiousNominalForms20221020\_BibleOL-export.csv}
+\item \texttt{AmbigiousVerbalForms20221021\_BibleOL-export.csv}
+\end{itemize}
+
+\noindent \textbf{Output:} The \texttt{nestle1904\_hints.db} database.
+
+\vspace{1ex}
+
+\noindent
+The \emph{hintsdb} program is executed. I creates the so-called ``hints database''. For information
+about this database, see the chapter \emph{Hints} in the Bible OL technical documentation.
+
+The files \texttt{Ambigious*Forms2022102*\_BibleOL-export.csv} are taken from the Excel files
+\texttt{Ambigious*Forms2022102*\_BibleOL-export.xlsx} created by Oliver Glanz. They contain information
+about various possible interpretations of a particular verbal or nominal form.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% Generating Lexicons %%%%%%%%%%%%%%%%%%%%
+\chapter{Generating Lexicons}
+
+There are currently no programs available for generating Greek lexicons.
+
+\end{document}
+
+% Local Variables:
+% mode: latex
+% ispell-dictionary: "british-ize"
+% ispell-extra-args: ("--home-dir=/home/claus/Projects/BibleOL/techdoc")
+% eval: (auto-fill-mode 1)
+% End:

@@ -1,3 +1,6 @@
+# Copyright © 2023 Claus Tøndering.
+# Released under an MIT License.
+
 HEADERS=mql_item.hpp mql_word.hpp morph.hpp util.hpp strip.hpp mql.hpp pugixml/src/pugixml.hpp oxia2tonos.hpp
 
 CPPFILES1=mql_item.cpp mql_word.cpp nestle2mql.cpp morph.cpp util.cpp strip.cpp mql.cpp read_inflection.cpp 
@@ -13,9 +16,12 @@ DEPFILES2=$(CPPFILES2:.cpp=.d)
 DEPFILES3=$(CPPFILES3:.cpp=.d)
 
 
-CXX=c++-11.1.0
+CXX=c++
 CXXFLAGS=-std=c++20 -MMD -O3 -I pugixml/src
 CXXFLAGS2=-std=c++20 -MMD -O3
+
+EMDROS_LIBS = $(shell pkg-config --libs emdros)
+
 
 all:	nestle1904 t2o nestle1904_hints.db
 
@@ -40,12 +46,6 @@ nestle1904:	nestle.mql add_sentences/add_sentences.mql
 nestledump.mql:	nestle1904
 	mqldump --batch-create-objects -o $@ $+
 
-nestle2csv.o:	nestle2csv.cpp
-	$(CXX) -I frequency_info -c -o $@ $<
-
-nestle2csv:	nestle2csv.o frequency_info/emdros_iterators.o -lemdros_amalgamation -lpthread -ldl
-	$(CXX) $(LDLIBS) -o $@ $+ $(LDFLAGS)
-
 oxia2tonos.o:	oxia2tonos.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
@@ -60,7 +60,7 @@ t2o:	o2t
 
 
 hintsdb: $(OBJFILES3)
-	$(CXX) $(CXXFLAGS2)  -o $@ $+ -lemdros_amalgamation -lpthread -ldl
+	$(CXX) $(CXXFLAGS2)  -o $@ $+ $(EMDROS_LIBS) -lpthread -ldl
 
 hintsdb.sql: hintsdb nestle1904
 	./hintsdb nestle1904 $@
