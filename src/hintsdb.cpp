@@ -165,6 +165,15 @@ class selector {
                 else
                     return m_feat_diff2string.at(i) + "≠" + at(r,col1) + "," + m_feat_diff2string.at(i) + "≠" + at(r,col2);// + "---32b";
         }
+
+        // Look for selector involving two features
+        // (This is tailored to find {feminine nominative, feminine genitive, masculine nominative}
+        // triplets as this is the only relevant case in Nestle1904)
+        if (at(r,m_feat_diffs[0][0])=="feminine"  && at(r,m_feat_diffs[0][1])=="singular" && at(r,m_feat_diffs[0][2])=="nominative" &&
+            at(r,m_feat_diffs[1][0])=="feminine"  && at(r,m_feat_diffs[1][1])=="singular" && at(r,m_feat_diffs[1][2])=="genitive" &&
+            at(r,m_feat_diffs[2][0])=="masculine" && at(r,m_feat_diffs[2][1])=="singular" && at(r,m_feat_diffs[2][2])=="nominative")
+            return m_feat_diff2string.at(0) + "≠masculine," + m_feat_diff2string.at(2) + "≠genitive";
+        
         for (auto rc : r)
             cerr << rc << " ";
         cerr << "INDETERMINATE 2\n";
@@ -471,7 +480,7 @@ int main(int argc, char **argv)
     {
         selector noun_selector{noun_feat_diffs, noun_feat_diff2string,{1},{0}};
 
-        string csvfile = "AmbigiousNominalForms20221020_BibleOL-export.csv";
+        string csvfile = "GREEK_BibleOL_nominal-ambiguity-project_v1.21.csv";
     
         rapidcsv::Document csv;
         int csv_row = 0;
